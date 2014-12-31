@@ -28,6 +28,6 @@ main(void)
 	fprintf(stderr, "dgesv_ fails %d\n", info);
 
 	system("pause"); //zatrzymuje okno i czeka na przycisk
-
+	//tyrlohg
     return info;
 }
