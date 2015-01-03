@@ -31,6 +31,13 @@ int main(void)
 	printf("Z jaka dokladnoscia chcesz uzyskac wynik?");
 	scanf("%f", &dokladnosc);
 
+	printf("\nUstaw punkt startowy ukladu rownan:\n");
+	for (integer i = 0; i <= 2; i++)
+	{
+		printf("x%d\n", i);
+		scanf("%lf", &x[i]);
+	}
+
 	//get F(x0)
 	getFunction(F, x);
 	printf("The function is %lf %lf %lf\n", F[0], F[1], F[2]);
