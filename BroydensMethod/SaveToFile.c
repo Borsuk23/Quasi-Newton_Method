@@ -6,6 +6,7 @@
 void WriteSolutionsToFile(doublereal* x)
 {
 	FILE * fp;
+	integer i;
 	fp = fopen("result.txt", "w");
 	
 	
@@ -16,8 +17,14 @@ void WriteSolutionsToFile(doublereal* x)
 	}
 	else
 	{
-		fprintf(fp, "The solution is %lf %lf %lf\n", x[0], x[1], x[2]);
+		fprintf(fp, "The solution is:\n");
+
+		for (i = 0; i <= 2; i++)
+		{
+			fprintf(fp, "x%d = %lf\n", i, x[i]);
+		}
 		fclose(fp);
+		
 	}
 
 	printf("Solutions written to file result.txt\n");
