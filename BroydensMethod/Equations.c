@@ -6,6 +6,7 @@ integer N = 3;
 doublereal F[3] = { 0, 0, 0 };
 doublereal Bk[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
 doublereal dk[3] = { 1, 1, 1 };
+doublereal dx[3] = { 0, 0, 0 };
 
 //doublereal FunctionValue[2];
 

@@ -15,17 +15,12 @@ int main(void)
 	doublereal xAlpha = 1;
 	integer lda = N;
 	integer ldb = N;
-	doublereal dx[3] = { 0, 0, 0 };
 	doublereal AlphaK = 1;
 	integer counter = 0;
 	char typeN[1] = { 'N' };
 	char typeT[1] = { 'T' };
 	doublereal licznik[3] = { 0, 0, 0 };
 	doublereal mianownik[1] = { 1 };
-	doublereal mianownik_pom[3] = { 1, 1, 1 };
-	doublereal eye[1] = { 1 };
-	doublereal mianownik_odwrotnosc[1] = { 1 };
-	doublereal broyden_pom[3] = { 1, 1, 1 };
 
 	//pobor z konsoli dokladnosci wybranej przez uzytkownika
 	printf("Z jaka dokladnoscia chcesz uzyskac wynik?");
