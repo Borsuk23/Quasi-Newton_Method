@@ -114,18 +114,20 @@ int main(void)
 		printf("      [%lf %lf %lf]\n", Bk[1], Bk[4], Bk[7]);
 		printf("      [%lf %lf %lf]\n", Bk[2], Bk[5], Bk[8]);
 
+		printf("\n\n");
 
-		if (!info) /* succeed */
-		{
-			printf("\n\n WELL DONE MALENKA !\n\n");
-			//printf("counter %li\n\n", counter);
-		}
-		else
-			fprintf(stderr, "dgesv_ fails %d\n", info);
+		
 
 	} 
 	
-	
+	if (!info) /* succeed */
+	{
+		printf("\n\n WELL DONE MALENKA !\n\n");
+		printf("The solution is %lf %lf %lf\n", x[0], x[1], x[2]);
+	}
+	else
+		fprintf(stderr, "dgesv_ fails %d\n", info);
+
 	//-------------------------------------------------------------------------
 
 	
