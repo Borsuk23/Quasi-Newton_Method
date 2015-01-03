@@ -2,12 +2,12 @@
 #include "clapack.h"
 
 integer N;
-doublereal x[2];
-doublereal F[2];
-doublereal Bk[4];
-doublereal dk[2];
-doublereal dx[2];
-doublereal dF[2];
-integer ipiv[2];
+doublereal x[3];
+doublereal F[3];
+doublereal Bk[9];
+doublereal dk[3];
+doublereal dx[3];
+doublereal dF[3];
+integer ipiv[3];
 
 getFunction(doublereal*, doublereal*);
