@@ -2,11 +2,13 @@
 #include "f2c.h"
 #include "clapack.h"
 #include "Equations.h"
+#include "SaveToFile.h"
 
 int main(void)
 {
     
     integer info;
+	float dokladnosc;
 	doublereal alpha = -1;
 	doublereal zero = 0;
 	integer nrhs = 1;
@@ -25,15 +27,19 @@ int main(void)
 	doublereal mianownik_odwrotnosc[1] = { 1 };
 	doublereal broyden_pom[3] = { 1, 1, 1 };
 
-	
+	//pobor z konsoli dokladnosci wybranej przez uzytkownika
+	printf("Z jaka dokladnoscia chcesz uzyskac wynik?");
+	scanf("%f", &dokladnosc);
+
 	//get F(x0)
 	getFunction(F, x);
 	printf("The function is %lf %lf %lf\n", F[0], F[1], F[2]);
 
-	while ((dnrm2_(&N, dk, &nrhs)>0.0001))// && counter<=20) //norma euklidesowa wektora dk
+	while ((dnrm2_(&N, dk, &nrhs)>dokladnosc) && (counter<=1000)) //norma euklidesowa wektora dk
 	{
 		
 		counter++;
+
 		//F(x)=-F(x)
 		dscal_(&N, &alpha, F, &nrhs);
 
@@ -123,7 +129,7 @@ int main(void)
 	
 	if (!info) /* succeed */
 	{
-		printf("\n\n WELL DONE MALENKA !\n\n");
+		printf("\n\n WELL DONE !\n\n");
 		printf("The solution is %lf %lf %lf\n", x[0], x[1], x[2]);
 		printf("The counter is %li\n", counter);
 	}
@@ -132,7 +138,8 @@ int main(void)
 
 	//-------------------------------------------------------------------------
 
-	
+	//zapis wyników do pliku
+	WriteSolutionsToFile(x);
 
 	system("pause"); //zatrzymuje okno i czeka na przycisk
 	
