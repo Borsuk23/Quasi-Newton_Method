@@ -15,7 +15,7 @@ int main(void)
 	integer ldb = N;
 	doublereal dx[3] = { 0, 0, 0 };
 	doublereal AlphaK = 1;
-	//integer counter = 0;
+	integer counter = 0;
 	char typeN[1] = { 'N' };
 	char typeT[1] = { 'T' };
 	doublereal licznik[3] = { 0, 0, 0 };
@@ -30,10 +30,10 @@ int main(void)
 	getFunction(F, x);
 	printf("The function is %lf %lf %lf\n", F[0], F[1], F[2]);
 
-	while (dnrm2_(&N, dk, &nrhs)>0.0001) //norma euklidesowa wektora dk
+	while ((dnrm2_(&N, dk, &nrhs)>0.0001))// && counter<=20) //norma euklidesowa wektora dk
 	{
 		
-
+		counter++;
 		//F(x)=-F(x)
 		dscal_(&N, &alpha, F, &nrhs);
 
@@ -47,6 +47,9 @@ int main(void)
 		//Bk*dk=-F(x)
 		//wyliczam dk
 		dgesv_(&N, &nrhs, Bk, &lda, ipiv, dk, &ldb, &info);
+		
+		if (info)
+			break;
 
 		printf("Macierz dk is %lf %lf %lf\n", dk[0], dk[1], dk[2]);
 
@@ -91,24 +94,23 @@ int main(void)
 		//-------------------------------------------------------------------------
 
 		//4 
-		//Bk liczone jako Bk^(-1)
-		//licznik=dx
-		dcopy_(&N, dx, &nrhs, licznik, &nrhs);
-		//licznik=-Bk*dF+dx
-		dgemm_(typeN, typeN, &N, &nrhs, &N, &alpha, Bk, &N, dF, &N, &xAlpha, licznik, &N);
-		//mianownik_pom=dx**T*B
-		dgemm_(typeT, typeN, &nrhs, &N, &N, &xAlpha, dx, &N, Bk, &N, &zero, mianownik_pom, &nrhs);
-		//mianownik=mianownik_pom*mianownik
-		dgemm_(typeN, typeN, &nrhs, &nrhs, &N, &xAlpha, mianownik_pom, &nrhs, dF, &N, &zero, mianownik, &nrhs);
-		//wyznaczenie mianownik^-1 za pomoca Ax=B, gdzie B=eye, wtedy x=A^(-1)
-		//mianownik_odwrotnosc=eye
-		dcopy_(&nrhs, eye, &nrhs, mianownik_odwrotnosc, &nrhs);
-		//mianownik_odwrotnosc=mianownik^(-1)
-		dgesv_(&nrhs, &nrhs, mianownik, &nrhs, ipiv, mianownik_odwrotnosc, &nrhs, &info);
-		//broyden_pom=licznik*mianownik_odwrotnosc
-		dgemm_(typeN, typeN, &N, &nrhs, &nrhs, &xAlpha, licznik, &N, mianownik_odwrotnosc, &nrhs, &zero, broyden_pom, &N);
-		//Bk=Bk+broyden_pom*mianownik_pom
-		dgemm_(typeN, typeN, &N, &N, &nrhs, &xAlpha, broyden_pom, &N, mianownik_pom, &nrhs, &xAlpha, Bk, &N);
+		//Aproksymacja Broydena
+		//licznik=dF
+		dcopy_(&N, dF, &nrhs, licznik, &nrhs);
+		
+		//licznik=-Bk*dx+dF
+		dgemm_(typeN, typeN, &N, &nrhs, &N, &alpha, Bk, &N, dx, &N, &xAlpha, licznik, &N);
+		
+		//norma wektora
+		mianownik[0] = dnrm2_(&N, dx, &nrhs);
+		mianownik[0] = 1 / mianownik[0];
+		//norma do kwadratu = dx^T*dx
+		mianownik[0] = mianownik[0] * mianownik[0];
+
+		//C=alpha*A*B+betaC
+		//Bk+1=mianownik*licznik*dx^T+Bk
+		dgemm_(typeN, typeT, &N, &N, &nrhs, mianownik, licznik, &N, dx, &N, &xAlpha, Bk, &N);
+
 
 		printf("Bk is [%lf %lf %lf]\n", Bk[0], Bk[3], Bk[6]);
 		printf("      [%lf %lf %lf]\n", Bk[1], Bk[4], Bk[7]);
@@ -116,7 +118,6 @@ int main(void)
 
 		printf("\n\n");
 
-		
 
 	} 
 	
@@ -124,6 +125,7 @@ int main(void)
 	{
 		printf("\n\n WELL DONE MALENKA !\n\n");
 		printf("The solution is %lf %lf %lf\n", x[0], x[1], x[2]);
+		printf("The counter is %li\n", counter);
 	}
 	else
 		fprintf(stderr, "dgesv_ fails %d\n", info);
