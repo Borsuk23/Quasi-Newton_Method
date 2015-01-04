@@ -9,6 +9,7 @@ int main(void)
     
     integer info;
 	float dokladnosc;
+	integer i;
 	doublereal alpha = -1;
 	doublereal zero = 0;
 	integer nrhs = 1;
@@ -24,12 +25,12 @@ int main(void)
 	initData();
 
 	//pobor z konsoli dokladnosci wybranej przez uzytkownika
-	printf("Z jaka dokladnoscia chcesz uzyskac wynik?");
+	printf("Z jaka dokladnoscia chcesz uzyskac wynik? \n");
 	scanf("%f", &dokladnosc);
 
 	//pobor z konsoli punktu startowego wybranego przez uzytkownika
 	printf("\nUstaw punkt startowy ukladu rownan:\n");
-	for (integer i = 0; i <= N-1 ; i++)
+	for (integer i = 0; i < N ; i++)
 	{
 		printf("x%d\n", i);
 		scanf("%lf", &x[i]);
@@ -38,14 +39,13 @@ int main(void)
 
 	//get F(x0)
 	getFunction(F, x);
-	printf("The x0 function is \n");
-	for (integer i = 0; i <= N - 1; i++)
+	printf("Funkcja dla x0: ");
+	for ( i = 0; i < N; i++)
 	{
-		printf(" %lf\n", F[i]);
+		printf(" %lf ", F[i]);
 	}
+	printf("\n");
 	
-	
-
 
 	while ((dnrm2_(&N, dk, &nrhs)>dokladnosc) && (counter<=1000)) //norma euklidesowa wektora dk
 	{
@@ -55,11 +55,12 @@ int main(void)
 		//F(x)=-F(x)
 		dscal_(&N, &alpha, F, &nrhs);
 
-		printf("The -F function is\n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf("Wartoœci funkcji -F: ");
+		for ( i = 0; i < N; i++)
 		{
-			printf(" %lf\n", F[i]);
+			printf(" %lf ", F[i]);
 		}
+		printf("\n");
 
 		//przypisuje dk=F, zeby dk zostalo nadpisane w mnozeniu i wymnozona zostala wartosc funkcji
 		dcopy_(&N, F, &nrhs, dk, &nrhs);
@@ -73,11 +74,13 @@ int main(void)
 		if (info)
 			break;
 
-		printf("Macierz dk is \n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf("Macierz dk: ");
+		for ( i = 0; i < N; i++)
 		{
-			printf(" %lf\n", dk[i]);
+			printf(" %lf ", dk[i]);
 		}
+		printf("\n");
+
 		//2------------------------------------------------------------------------
 
 		//xk+1=xk+alfa*dk
@@ -89,50 +92,58 @@ int main(void)
 		//x staje sie xk+1
 		daxpy_(&N, &AlphaK, dk, &nrhs, x, &nrhs);
 
-		printf("The xk+1 is \n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf(" xk+1 to: ");
+		for ( i = 0; i < N; i++)
 		{
-			printf(" %lf\n", x[i]);
+			printf(" %lf ", x[i]);
 		}
+		printf("\n");
+
 		//3----------------------------------------------------------------------
 
 		//dx=-dx (gdzie dx to stare xk)
 		dscal_(&N, &alpha, dx, &nrhs);
 
-		printf("The dx (-dx) is \n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf("Wektor dx=-dx: ");
+		for (i = 0; i < N; i++)
 		{
-			printf(" %lf\n", dx[i]);
+			printf("%lf ", dx[i]);
 		}
+		printf("\n");
 
 		//y=AlphaK*A*x+beta*y
 		//dx=xk+1-xk
 		daxpy_(&N, &AlphaK, x, &nrhs, dx, &nrhs);
 
-		printf("The dx is \n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf("Wektor dx=xk+1-xk: ");
+		for (i = 0; i < N; i++)
 		{
-			printf(" %lf\n", dx[i]);
+			printf("%lf ", dx[i]);
 		}
+		printf("\n");
 
 		//zapisuje stara funkcje -F(xk)
 		dcopy_(&N, F, &nrhs, dF, &nrhs);
 
 		//pobiera funkcje z F(xk+1) x jest teraz xk+1
 		getFunction(F, x);
-		printf("The xk+1 function is \n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf("Funkcja xk+1: ");
+		for (i = 0; i < N; i++)
 		{
-			printf(" %lf\n", F[i]);
+			printf("%lf ", F[i]);
 		}
+		printf("\n");
+
 		//dF=F(xk+1)-F(xk) gdzie -F(xk)=dF
 		daxpy_(&N, &AlphaK, F, &nrhs, dF, &nrhs);
 
-		printf("The dF is \n");
-		for (integer i = 0; i <= N - 1; i++)
+		printf("dF to: ");
+		for (i = 0; i < N; i++)
 		{
-			printf(" %lf\n", dF[i]);
+			printf("%lf ", dF[i]);
 		}
+		printf("\n");
+
 		//-------------------------------------------------------------------------
 
 		//4 
@@ -156,7 +167,17 @@ int main(void)
 		//Bk+1=mianownik*licznik*dx^T+Bk
 		dgemm_(typeN, typeT, &N, &N, &nrhs, mianownik, licznik, &N, dx, &N, &xAlpha, Bk, &N);
 
-		
+		printf("Macierz Bk:\n");
+		for (i = 0; i < N; i++)
+		{
+			printf("      [");
+			for (integer j = i; j < (N*N); j += N)
+			{
+				printf(" %lf ", Bk[j]);
+			}
+			printf("]\n");
+		}
+		printf("\n");
 
 		printf("Bk is [%lf %lf %lf]\n", Bk[0], Bk[3], Bk[6]);
 		printf("      [%lf %lf %lf]\n", Bk[1], Bk[4], Bk[7]);
@@ -170,11 +191,17 @@ int main(void)
 	if (!info) /* succeed */
 	{
 		printf("\n\n WELL DONE !\n\n");
-		printf("The solution is %lf %lf %lf\n", x[0], x[1], x[2]);
-		printf("The counter is %li\n", counter);
+		printf("Rozwiazanie to: ");
+		for (i = 0; i < N; i++)
+		{
+			printf("%lf ", x[i]);
+		}
+		printf("\n");
+		printf("Liczba krokow: %li \n", counter);
+		
 	}
 	else
-		fprintf(stderr, "dgesv_ fails %d\n", info);
+		fprintf(stderr, "wyst¹pi³ b³¹d %d\n", info);
 
 	//-------------------------------------------------------------------------
 
