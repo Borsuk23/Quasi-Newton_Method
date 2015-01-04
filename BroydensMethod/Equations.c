@@ -3,12 +3,50 @@
 
 integer N = 3;
 //doublereal x[3] = {1, 1, 1};
-doublereal F[3] = { 0, 0, 0 };
-doublereal Bk[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
-doublereal dk[3] = { 1, 1, 1 };
-doublereal dx[3] = { 0, 0, 0 };
+//doublereal F[3] = { 0, 0, 0 };
+//doublereal Bk[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+//doublereal dk[3] = { 1, 1, 1 };
+//doublereal dx[3] = { 0, 0, 0 };
 
 //doublereal FunctionValue[2];
+
+
+void initData()
+{
+	int i;
+	Bk = (doublereal*)calloc(N*N, sizeof(doublereal));
+	//Bk jako macierz jednosktowa
+	for (i = 0; i < N*N; i += N + 1)
+	{
+		Bk[i] = 1;
+	}
+	F = (doublereal*)calloc(N, sizeof(doublereal));
+	dk = (doublereal*)calloc(N, sizeof(doublereal));
+	//dk={1,1,1,..}
+	for (i = 0; i < N; i++)
+	{
+		dk[i] = 1;
+	}
+	x = (doublereal*)calloc(N, sizeof(doublereal));
+	dx = (doublereal*)calloc(N, sizeof(doublereal));
+	dF = (doublereal*)calloc(N, sizeof(doublereal));
+	ipiv = (integer*)calloc(N, sizeof(integer));
+	licznik = (doublereal*)calloc(N, sizeof(doublereal));
+	mianownik[0] = 1;
+}
+
+void clearData()
+{
+	free(Bk);
+	free(F);
+	free(dk);
+	free(x);
+	free(dx);
+	free(dF);
+	free(ipiv);
+	free(licznik);
+}
+
 
 getFunction(doublereal* FunctionValue, doublereal* x)
 {
@@ -23,6 +61,9 @@ getFunction(doublereal* FunctionValue, doublereal* x)
 	FunctionValue[0] = (double)(x[0] - x[1] + x[2] - 4);
 	FunctionValue[1] = (double)(x[0] - x[2] + 3);
 	FunctionValue[2] = (double)(x[2] - x[0] - x[1] );
+
+	//FunctionValue[0] = (double)(cos(x[0]) + x[1]);
+	//FunctionValue[1] = (double)(x[0] * x[1]);
 
 	//FunctionValue[0] = (double)(x[0] - 8);
 	//FunctionValue[2] = (double)(x[2] + 12);
