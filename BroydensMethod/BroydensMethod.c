@@ -185,6 +185,9 @@ int main(void)
 
 		printf("\n\n");
 
+		//zapis wyników do pliku
+		WriteSolutionsToFile(x);
+
 
 	} 
 	
@@ -206,7 +209,7 @@ int main(void)
 	//-------------------------------------------------------------------------
 
 	//zapis wyników do pliku
-	WriteSolutionsToFile(x);
+	//WriteSolutionsToFile(x);
 
 	system("pause"); //zatrzymuje okno i czeka na przycisk
 	
