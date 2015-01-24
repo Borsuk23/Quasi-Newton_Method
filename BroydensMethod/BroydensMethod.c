@@ -6,7 +6,7 @@
 
 int main(void)
 {
-    
+	FILE * fp;
     integer info;
 	float dokladnosc;
 	integer i;
@@ -18,36 +18,52 @@ int main(void)
 	integer ldb = N;
 	doublereal AlphaK = 1;
 	integer counter = 0;
+	integer typ = 1;
 	char typeN[1] = { 'N' }; //macierz normalna
 	char typeT[1] = { 'T' }; //macierz transponowana
 	
 
 	initData();
 
-	//pobor z konsoli dokladnosci wybranej przez uzytkownika
-	printf("Z jaka dokladnoscia chcesz uzyskac wynik? \n");
-	scanf("%f", &dokladnosc);
+	//pobor dokladnosci i punktu startowego z pliku
+	printf("Wczytywanie parametrow z pliku..\n");
+	fp = fopen("dane.txt", "r");
+	//printf("Z jaka dokladnoscia chcesz uzyskac wynik?\n");
+	fscanf(fp, "%f", &dokladnosc);
+	//printf("%f\n", dokladnosc);
 
-	//pobor z konsoli punktu startowego wybranego przez uzytkownika
-	printf("\nUstaw punkt startowy ukladu rownan:\n");
-	for (integer i = 0; i < N ; i++)
+	//printf("\nUstaw punkt startowy ukladu rownan:\n");
+	for (i = 0; i < N; i++)
 	{
-		printf("x%d\n", i);
-		scanf("%lf", &x[i]);
+		//printf("x%d = ", i);
+		fscanf(fp, "%lf", &x[i]);
+		//printf("%lf", x[i]);
 	}
 
+	
+	printf("Wybierz ile danych chcesz wyswietlac:\n");
+	printf("1. Rozwiazania ukladu rownan po kazdym kroku\n");
+	printf("2. Samo rozwiazanie rownan\n");
+	scanf("%d", &typ);
 
 	//get F(x0)
 	getFunction(F, x);
-	printf("Funkcja dla x0: ");
-	for ( i = 0; i < N; i++)
-	{
-		printf(" %lf ", F[i]);
-	}
-	printf("\n");
-	
 
-	while ((dnrm2_(&N, dk, &nrhs)>dokladnosc) && (counter<=1000)) //norma euklidesowa wektora dk
+	if (typ != 2)
+	{
+		/*printf("Wartosc funkcji F: ");
+		for (i = 0; i < N; i++)
+		{
+			printf("%lf ", F[i]);
+		}
+		printf("\n");*/
+		WriteVectorToFile(F, N, "Wartosc funkcji F: ", counter);
+	}
+
+
+
+
+	while ((dnrm2_(&N, dk, &nrhs)>dokladnosc) )// && (counter<=1000)) //norma euklidesowa wektora dk
 	{
 		
 		counter++;
@@ -55,12 +71,12 @@ int main(void)
 		//F(x)=-F(x)
 		dscal_(&N, &alpha, F, &nrhs);
 
-		printf("Wartoœci funkcji -F: ");
+		/*printf("Wartoœci funkcji -F: ");
 		for ( i = 0; i < N; i++)
 		{
-			printf(" %lf ", F[i]);
+		printf(" %lf ", F[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//przypisuje dk=F, zeby dk zostalo nadpisane w mnozeniu i wymnozona zostala wartosc funkcji
 		dcopy_(&N, F, &nrhs, dk, &nrhs);
@@ -71,15 +87,15 @@ int main(void)
 		//wyliczam dk
 		dgesv_(&N, &nrhs, Bk, &lda, ipiv, dk, &ldb, &info);
 		
-		if (info)
-			break;
+		//if (info)
+			//break;
 
-		printf("Macierz dk: ");
+		/*printf("Macierz dk: ");
 		for ( i = 0; i < N; i++)
 		{
 			printf(" %lf ", dk[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//2------------------------------------------------------------------------
 
@@ -92,57 +108,57 @@ int main(void)
 		//x staje sie xk+1
 		daxpy_(&N, &AlphaK, dk, &nrhs, x, &nrhs);
 
-		printf(" xk+1 to: ");
+		/*printf(" xk+1 to: ");
 		for ( i = 0; i < N; i++)
 		{
 			printf(" %lf ", x[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//3----------------------------------------------------------------------
 
 		//dx=-dx (gdzie dx to stare xk)
 		dscal_(&N, &alpha, dx, &nrhs);
 
-		printf("Wektor dx=-dx: ");
+		/*printf("Wektor dx=-dx: ");
 		for (i = 0; i < N; i++)
 		{
 			printf("%lf ", dx[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//y=AlphaK*A*x+beta*y
 		//dx=xk+1-xk
 		daxpy_(&N, &AlphaK, x, &nrhs, dx, &nrhs);
 
-		printf("Wektor dx=xk+1-xk: ");
+		/*printf("Wektor dx=xk+1-xk: ");
 		for (i = 0; i < N; i++)
 		{
 			printf("%lf ", dx[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//zapisuje stara funkcje -F(xk)
 		dcopy_(&N, F, &nrhs, dF, &nrhs);
 
 		//pobiera funkcje z F(xk+1) x jest teraz xk+1
 		getFunction(F, x);
-		printf("Funkcja xk+1: ");
+		/*printf("Funkcja xk+1: ");
 		for (i = 0; i < N; i++)
 		{
 			printf("%lf ", F[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//dF=F(xk+1)-F(xk) gdzie -F(xk)=dF
 		daxpy_(&N, &AlphaK, F, &nrhs, dF, &nrhs);
 
-		printf("dF to: ");
+		/*printf("dF to: ");
 		for (i = 0; i < N; i++)
 		{
 			printf("%lf ", dF[i]);
 		}
-		printf("\n");
+		printf("\n");*/
 
 		//-------------------------------------------------------------------------
 
@@ -167,7 +183,7 @@ int main(void)
 		//Bk+1=mianownik*licznik*dx^T+Bk
 		dgemm_(typeN, typeT, &N, &N, &nrhs, mianownik, licznik, &N, dx, &N, &xAlpha, Bk, &N);
 
-		printf("Macierz Bk:\n");
+		/*printf("Macierz Bk:\n");
 		for (i = 0; i < N; i++)
 		{
 			printf("      [");
@@ -177,39 +193,57 @@ int main(void)
 			}
 			printf("]\n");
 		}
-		printf("\n");
+		printf("\n");*/
 
-		printf("Bk is [%lf %lf %lf]\n", Bk[0], Bk[3], Bk[6]);
+	/*	printf("Bk is [%lf %lf %lf]\n", Bk[0], Bk[3], Bk[6]);
 		printf("      [%lf %lf %lf]\n", Bk[1], Bk[4], Bk[7]);
-		printf("      [%lf %lf %lf]\n", Bk[2], Bk[5], Bk[8]);
+		printf("      [%lf %lf %lf]\n", Bk[2], Bk[5], Bk[8]);*/
 
-		printf("\n\n");
+		//printf("\n\n");
 
-		//zapis wyników do pliku
-		WriteSolutionsToFile(x);
-
+		if (typ != 2)
+		{
+			/*printf("Rozwiazanie %d to: ", counter);
+			for (i = 0; i < N; i++)
+			{
+				printf("%lf ", x[i]);
+			}
+			printf("\n");*/
+			WriteVectorToFile(x, N, "Rozwiazanie %d to: ", counter);
+		}
+		
 
 	} 
-	
+
+	//zapis wynikow do pliku
 	if (!info) /* succeed */
 	{
-		printf("\n\n WELL DONE !\n\n");
+		printf("\n\nZakonczono z sukcesem!\n\n");
+		printf("Rozwiazanie to: ");
+		for (i = 0; i < N; i++)
+		{
+			printf("%lf ", x[i]);
+		}
+		printf("\nLiczba krokow: %d \n", counter);
+		WriteSolutionToFile(x, N, counter, 1);
+	}
+	else
+	{
 		printf("Rozwiazanie to: ");
 		for (i = 0; i < N; i++)
 		{
 			printf("%lf ", x[i]);
 		}
 		printf("\n");
-		printf("Liczba krokow: %li \n", counter);
-		
+		fprintf(stderr, "wystapil blad %d\n", info);
+		WriteSolutionToFile(x, N, counter, 0);
 	}
-	else
-		fprintf(stderr, "wyst¹pi³ b³¹d %d\n", info);
+	
+	
 
 	//-------------------------------------------------------------------------
 
-	//zapis wyników do pliku
-	//WriteSolutionsToFile(x);
+	
 
 	system("pause"); //zatrzymuje okno i czeka na przycisk
 	
