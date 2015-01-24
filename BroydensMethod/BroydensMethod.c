@@ -19,6 +19,8 @@ int main(void)
 	doublereal AlphaK = 1;
 	integer counter = 0;
 	integer typ = 1;
+	integer lwork = 2 * N;
+	integer sizeB = N*N;
 	char typeN[1] = { 'N' }; //macierz normalna
 	char typeT[1] = { 'T' }; //macierz transponowana
 	
@@ -46,6 +48,11 @@ int main(void)
 	printf("2. Samo rozwiazanie rownan\n");
 	scanf("%d", &typ);
 
+	
+
+	//pierwsza macierz Broydena
+	initBroyden(F, x, dokladnosc);
+
 	//get F(x0)
 	getFunction(F, x);
 
@@ -63,32 +70,32 @@ int main(void)
 
 
 
-	while ((dnrm2_(&N, dk, &nrhs)>dokladnosc) )// && (counter<=1000)) //norma euklidesowa wektora dk
+	while ((dnrm2_(&N, dk, &nrhs)>dokladnosc)  && (counter<=10000000)) //norma euklidesowa wektora dk
 	{
 		
 		counter++;
 
 		//F(x)=-F(x)
-		dscal_(&N, &alpha, F, &nrhs);
+		//dscal_(&N, &alpha, F, &nrhs);
 
-		/*printf("Wartoœci funkcji -F: ");
-		for ( i = 0; i < N; i++)
-		{
-		printf(" %lf ", F[i]);
-		}
-		printf("\n");*/
-
-		//przypisuje dk=F, zeby dk zostalo nadpisane w mnozeniu i wymnozona zostala wartosc funkcji
+		//zapisuje F do dk
 		dcopy_(&N, F, &nrhs, dk, &nrhs);
+		//zapisuje Bk do Bkpom
+		dcopy_(&sizeB, Bk, &nrhs, Bkpom, &nrhs);
+		//skaluje dk*-1
+		dscal_(&N, &alpha, dk, &nrhs);
+
+		
 
 		//1------------------------------------------------------------
-
+		//Rozwiazanie Bkdk=-F dk sie nadpisuje, bo wczesniej bylo F
 		//Bk*dk=-F(x)
 		//wyliczam dk
-		dgesv_(&N, &nrhs, Bk, &lda, ipiv, dk, &ldb, &info);
+		dgesv_(&N, &nrhs, Bk, &N, ipiv, dk, &N, &info);
+
 		
-		//if (info)
-			//break;
+		if (info)
+			break;
 
 		/*printf("Macierz dk: ");
 		for ( i = 0; i < N; i++)
@@ -101,10 +108,6 @@ int main(void)
 
 		//xk+1=xk+alfa*dk
 
-		//zapisuje starego xk jako dx
-		dcopy_(&N, x, &nrhs, dx, &nrhs);
-
-		//xk+1=xk+alfa*dk
 		//x staje sie xk+1
 		daxpy_(&N, &AlphaK, dk, &nrhs, x, &nrhs);
 
@@ -116,72 +119,39 @@ int main(void)
 		printf("\n");*/
 
 		//3----------------------------------------------------------------------
+		//Obliczanie dF=Fk+1
+		getFunction(dF, x);
 
-		//dx=-dx (gdzie dx to stare xk)
-		dscal_(&N, &alpha, dx, &nrhs);
+		//zapisanie do pamieci zeby potem przekazac do nastepnej iteracji
+		//zapisuje dF do dx
+		dcopy_(&N, dF, &nrhs, dx, &nrhs);
 
-		/*printf("Wektor dx=-dx: ");
-		for (i = 0; i < N; i++)
-		{
-			printf("%lf ", dx[i]);
-		}
-		printf("\n");*/
+		// obliczenie dF staje sie y y=-F+dF
+		daxpy_(&N, &alpha, F, &nrhs, dF, &nrhs);
 
-		//y=AlphaK*A*x+beta*y
-		//dx=xk+1-xk
-		daxpy_(&N, &AlphaK, x, &nrhs, dx, &nrhs);
-
-		/*printf("Wektor dx=xk+1-xk: ");
-		for (i = 0; i < N; i++)
-		{
-			printf("%lf ", dx[i]);
-		}
-		printf("\n");*/
-
-		//zapisuje stara funkcje -F(xk)
-		dcopy_(&N, F, &nrhs, dF, &nrhs);
-
-		//pobiera funkcje z F(xk+1) x jest teraz xk+1
-		getFunction(F, x);
-		/*printf("Funkcja xk+1: ");
-		for (i = 0; i < N; i++)
-		{
-			printf("%lf ", F[i]);
-		}
-		printf("\n");*/
-
-		//dF=F(xk+1)-F(xk) gdzie -F(xk)=dF
-		daxpy_(&N, &AlphaK, F, &nrhs, dF, &nrhs);
-
-		/*printf("dF to: ");
-		for (i = 0; i < N; i++)
-		{
-			printf("%lf ", dF[i]);
-		}
-		printf("\n");*/
+		
 
 		//-------------------------------------------------------------------------
 
 		//4 
 		//APROKSYMACJA BROYDENA
 		//Bk=Bk+(dF-Bdx)*norma(dx)^(-2)*dx**T    dx**T-transponowana macierz dx
-		//licznik=dF
+		//y=dF y staje sie licznikiem
 		dcopy_(&N, dF, &nrhs, licznik, &nrhs);
-		
-		//licznik=-Bk*dx+dF
-		dgemm_(typeN, typeN, &N, &nrhs, &N, &alpha, Bk, &N, dx, &N, &xAlpha, licznik, &N);
-		
-		//mianownik=norma(dx)
-		//norma wektora
-		mianownik[0] = dnrm2_(&N, dx, &nrhs);
-		//odwrocenie mianownika w celu mnozenia z licznikiem
+		//wiemy ze dk to roznica xow wiec zamiast dx jest dk
+		//-Bkpom*dx+y staje sie licznikiem
+		dgemm_(typeN, typeN, &N, &nrhs, &N, &alpha, Bkpom, &N, dk, &N, &xAlpha, licznik, &N);
+		//licznik*dx^T+zero*Bk staje sie Bk
+		dgemm_(typeN, typeT, &N, &N, &nrhs, &AlphaK, licznik, &N, dk, &N, &zero, Bk, &N);
+		//dx^T*dx+zero*mianownik staje sie mianownikiem
+		dgemm_(typeT, typeN, &nrhs, &nrhs, &N, &AlphaK, dk, &N, dk, &N, &zero, mianownik, &nrhs);
 		mianownik[0] = 1 / mianownik[0];
-		//norma do kwadratu = dx^T*dx
-		mianownik[0] = mianownik[0] * mianownik[0];
-
-		//C=alpha*A*B+betaC
-		//Bk+1=mianownik*licznik*dx^T+Bk
-		dgemm_(typeN, typeT, &N, &N, &nrhs, mianownik, licznik, &N, dx, &N, &xAlpha, Bk, &N);
+		//mianownik*Bk(czyli licznik)*dxpom + Bkpom (poprzednia macierz Broydena) staje sie nowym Bkpom
+		dgemm_(typeN, typeN, &N, &N, &N, mianownik, Bk, &N, dxpom, &N, &AlphaK, Bkpom, &N);
+		//zapisz Bkpom do Bk
+		dcopy_(&sizeB, Bkpom, &nrhs, Bk, &nrhs);
+		//zapisz dx do F (dzieki temu jest przepisane Fk+1 do nowego Fk)
+		dcopy_(&N, dx, &nrhs, F, &nrhs);
 
 		/*printf("Macierz Bk:\n");
 		for (i = 0; i < N; i++)
@@ -195,11 +165,7 @@ int main(void)
 		}
 		printf("\n");*/
 
-	/*	printf("Bk is [%lf %lf %lf]\n", Bk[0], Bk[3], Bk[6]);
-		printf("      [%lf %lf %lf]\n", Bk[1], Bk[4], Bk[7]);
-		printf("      [%lf %lf %lf]\n", Bk[2], Bk[5], Bk[8]);*/
-
-		//printf("\n\n");
+	
 
 		if (typ != 2)
 		{
@@ -226,6 +192,7 @@ int main(void)
 		}
 		printf("\nLiczba krokow: %d \n", counter);
 		WriteSolutionToFile(x, N, counter, 1);
+		WriteMatrixToFile(Bk, N, counter);
 	}
 	else
 	{
@@ -237,6 +204,7 @@ int main(void)
 		printf("\n");
 		fprintf(stderr, "wystapil blad %d\n", info);
 		WriteSolutionToFile(x, N, counter, 0);
+		WriteMatrixToFile(Bk, N, counter);
 	}
 	
 	

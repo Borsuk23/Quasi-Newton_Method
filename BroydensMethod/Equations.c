@@ -2,23 +2,23 @@
 #include "Equations.h"
 
 integer N = 8;
-//doublereal x[3] = {1, 1, 1};
-//doublereal F[3] = { 0, 0, 0 };
-//doublereal Bk[9] = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
-//doublereal dk[3] = { 1, 1, 1 };
-//doublereal dx[3] = { 0, 0, 0 };
 
-//doublereal FunctionValue[2];
 
 
 void initData()
 {
 	int i;
 	Bk = (doublereal*)calloc(N*N, sizeof(doublereal));
+	Bkpom = (doublereal*)calloc(N*N, sizeof(doublereal));
+	dxpom = (doublereal*)calloc(N*N, sizeof(doublereal));
+	eye = (doublereal*)calloc(N*N, sizeof(doublereal));
 	//Bk jako macierz jednosktowa
 	for (i = 0; i < N*N; i += N + 1)
 	{
 		Bk[i] = 1;
+		Bkpom[i] = 1;
+		dxpom[i] = 1;
+		eye[i] = 1;
 	}
 	F = (doublereal*)calloc(N, sizeof(doublereal));
 	dk = (doublereal*)calloc(N, sizeof(doublereal));
@@ -33,6 +33,7 @@ void initData()
 	ipiv = (integer*)calloc(N, sizeof(integer));
 	licznik = (doublereal*)calloc(N, sizeof(doublereal));
 	mianownik[0] = 1;
+	work = (doublereal*)calloc(2 * N, sizeof(doublereal));
 }
 
 void clearData()
@@ -46,10 +47,12 @@ void clearData()
 	free(ipiv);
 	free(licznik);
 }
-
-
 getFunction(doublereal* FunctionValue, doublereal* x)
 {
+	//FunctionValue[0] = (double)(x[0] + pow(x[1], 2) - 5.5*x[1] + pow(x[2], 2) - 11 * x[2] / 3 + 35 / 6);
+	//FunctionValue[1] = (double)(-pow(x[0], 2) + 10.5*x[0] - pow(x[1], 2) + 19 * x[1] / 3 + pow(x[2], 2) - 3.75*x[2] - 34);
+	//FunctionValue[2] = (double)(pow(x[0], 3) - 6 * pow(x[0], 2) - 44 * x[0] / 3 + 0.25*x[1] + 0.2*x[2] + 5831 / 60);
+	
 	//FunctionValue[0] = (double)( 4*sin(x[0]) + x[1] + x[2] );
 	//FunctionValue[1] = (double)( x[1] - 5 );
 	//FunctionValue[2] = (double)( x[2] + 3 );
@@ -71,7 +74,7 @@ getFunction(doublereal* FunctionValue, doublereal* x)
 	FunctionValue[5] = (double)(pow(x[4], 1) + pow(x[5], 1) - 35);
 	FunctionValue[6] = (double)(pow(x[4], 1) + pow(x[5], 1) + pow(x[6], 1) - 45);
 	FunctionValue[7] = (double)(pow(x[6], 1) + pow(x[7], 1) - 15);
-	
+
 	//FunctionValue[0] = (double)(cos(x[0]) + x[1]);
 	//FunctionValue[1] = (double)(x[0] * x[1]);
 
@@ -91,4 +94,47 @@ getFunction(doublereal* FunctionValue, doublereal* x)
 	FunctionValue[5] = (double)( 2 - x[0]);
 	FunctionValue[6] = (double)( x[2] - 1 );
 	FunctionValue[7] = (double)( 4*x[6]);*/
+}
+
+void initBroyden(doublereal* function, doublereal* x, float dokladnosc)
+{
+	int i = 0;
+	int j = 0;
+	int k = 0;
+	getFunction(function, x);
+	doublereal* dx = (doublereal*)calloc(N, sizeof(doublereal));
+	doublereal* deltaFunction = (doublereal*)calloc(N, sizeof(doublereal));
+	for (i = 0; i < N; i++)
+	{
+		for (k = 0; k < N; k++)
+		{
+			if (k == i)
+			{
+				dx[k] = x[k] + dokladnosc;
+			}
+			else
+			{
+				dx[k] = x[k];
+			}
+		}
+		getFunction(deltaFunction, dx);
+		for (j = i*N; j < N + i*(N); j++)
+		{
+			Bk[j] = (deltaFunction[j%N] - function[j%N]) / dokladnosc;
+		}
+	}
+	printf("Macierz Bk:\n");
+	for (i = 0; i < N; i++)
+	{
+		printf("      [");
+		for (integer j = i; j < (N*N); j += N)
+		{
+			printf(" %lf ", Bk[j]);
+		}
+		printf("]\n");
+	}
+	printf("\n");
+	getFunction(F, x);
+	free(dx);
+	free(deltaFunction);
 }
